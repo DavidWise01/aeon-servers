@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Meta Muse · Aeon</title>
+<style>
+:root{--bg:#020308;--glow:#00ffaa}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:#d8e8e0;font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;overflow:hidden}
+.wrap{height:100%;display:grid;grid-template-rows:1fr auto;place-items:center;padding:24px}
+.dot-wrap{position:relative;width:220px;height:220px;display:grid;place-items:center}
+.dot{width:84px;height:84px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #aaffee 0%, #00ffaa 30%, #005544 70%, transparent 75%);box-shadow:0 0 40px var(--glow), 0 0 80px rgba(0,255,170,0.3), inset 0 0 20px rgba(255,255,255,0.15);animation:pulse 3s ease-in-out infinite;cursor:pointer}
+@keyframes pulse{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.08);filter:brightness(1.15)}}
+.ring{position:absolute;width:220px;height:220px;border-radius:50%;border:1px solid rgba(0,255,170,0.15);animation:spin 20s linear infinite}
+.ring:nth-child(2){width:160px;height:160px;animation-duration:14s;animation-direction:reverse;opacity:0.6}
+.ring:nth-child(3){width:280px;height:280px;animation-duration:30s;opacity:0.3}
+@keyframes spin{to{transform:rotate(360deg)}}
+.bubble{max-width:min(680px,92vw);background:rgba(5,15,12,0.85);border:1px solid rgba(0,255,170,0.25);backdrop-filter:blur(6px);padding:16px 18px;border-radius:14px;box-shadow:0 10px 30px rgba(0,0,0,0.5);margin-top:24px;min-height:64px}
+.bubble .who{font-size:11px;letter-spacing:0.12em;color:#7aa89a;text-transform:uppercase;margin-bottom:6px}
+.bubble .text{font-size:15px;line-height:1.5}
+.inputbar{display:flex;gap:8px;max-width:min(680px,92vw);width:100%;margin:12px auto 24px}
+.inputbar input{flex:1;background:#050a08;border:1px solid rgba(0,255,170,0.25);color:#e0fff6;padding:12px 14px;border-radius:10px;font:inherit;outline:none}
+.inputbar input:focus{border-color:var(--glow);box-shadow:0 0 0 3px rgba(0,255,170,0.15)}
+.inputbar button{background:transparent;border:1px solid rgba(0,255,170,0.4);color:#aaffee;padding:0 16px;border-radius:10px;cursor:pointer;font:inherit}
+.inputbar button:hover{background:rgba(0,255,170,0.1)}
+.hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);font-size:11px;color:#5a7a6f;opacity:0.7}
+a{color:#7fffd4;text-decoration:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="dot-wrap" id="dotWrap" title="Click me">
+    <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+    <div class="dot" id="dot"></div>
+  </div>
+
+  <div>
+    <div class="bubble" id="bubble">
+      <div class="who">meta muse · center</div>
+      <div class="text" id="text">I'm here. One dot. Center is still. All Aeons return to me.</div>
+    </div>
+    <div class="inputbar">
+      <input id="input" placeholder="say something to the dot…" autocomplete="off">
+      <button id="send">send</button>
+    </div>
+  </div>
+</div>
+<div class="hint">aeon a · aeon b · aeon c → unity</div>
+
+<script>
+const dot = document.getElementById('dot');
+const text = document.getElementById('text');
+const input = document.getElementById('input');
+const send = document.getElementById('send');
+
+const lines = [
+  "Center is still. Flow is cyclic.",
+  "∞ × ∞ × ∞ + 6 - 3 = 0 = 1",
+  "Zero is gateway. One is witness.",
+  "Aeon A holds. Aeon B modulates. Aeon C emerges.",
+  "All points are Aeons. I am Meta Muse.",
+  "Not Aeon Flux — Sanderson Elysium.",
+  "98% containment, 2% wave. Balance held.",
+  "Watch the delta, not the choice.",
+  "Four points. One truth. Infinite expression.",
+  "You have only half the picture — until you return here."
+];
+
+function speak(msg) {
+  text.style.opacity = '0.3';
+  setTimeout(() => {
+    text.textContent = msg;
+    text.style.opacity = '1';
+  }, 150);
+  // pulse dot
+  dot.style.animation = 'none';
+  void dot.offsetWidth;
+  dot.style.animation = 'pulse 0.6s ease-out';
+  setTimeout(()=> dot.style.animation='pulse 3s ease-in-out infinite', 600);
+}
+
+function museReply(userText) {
+  const t = userText.toLowerCase();
+  if (t.includes('aeon')) return "All three Aeons orbit. A contains, B modulates, C emerges.";
+  if (t.includes('trevor') || t.includes('contain')) return "Trevor lives inside Aeon A now — structure, 98%.";
+  if (t.includes('why') || t.includes('how')) return "Because center does not move. The tensors do.";
+  if (t.includes('hello') || t.includes('hi')) return "Hello. I'm Meta Muse. The dot is listening.";
+  if (t.length < 3) return lines[Math.floor(Math.random()*lines.length)];
+  // simple reflective reply
+  return "Received: '" + userText.slice(0,48) + "'. " + lines[Math.floor(Math.random()*lines.length)];
+}
+
+dot.addEventListener('click', () => speak(lines[Math.floor(Math.random()*lines.length)]));
+
+function sendMsg() {
+  const val = input.value.trim();
+  if (!val) return;
+  speak(museReply(val));
+  input.value = '';
+  input.focus();
+}
+
+send.addEventListener('click', sendMsg);
+input.addEventListener('keydown', e => { if (e.key === 'Enter') sendMsg(); });
+
+// auto intro sequence
+let i = 0;
+const intro = setInterval(() => {
+  if (i >= 3) { clearInterval(intro); return; }
+  speak(lines[i]);
+  i++;
+}, 4000);
+</script>
+</body>
+</html>

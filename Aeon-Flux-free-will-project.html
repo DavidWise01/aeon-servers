@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AEON // HOME BASE</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #000000;
+    --panel: #050608;
+    --cyan: #00e5ff;
+    --magenta: #ff006a;
+    --white: #d1d5db;
+    --grid: rgba(0, 229, 255, 0.07);
+    --border: rgba(0, 229, 255, 0.22);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--bg);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+  }
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(var(--grid) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.5;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(0deg, rgba(0,0,0,0) 0px, rgba(0,0,0,0.15) 1px, transparent 2px);
+    opacity: 0.2;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .scan-vignette {
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(ellipse at center, transparent 60%, rgba(0,0,0,0.8) 100%);
+    pointer-events: none;
+    z-index: 2;
+  }
+  .app {
+    position: relative;
+    z-index: 3;
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+  }
+  header {
+    border-bottom: 1px solid var(--border);
+    padding: 18px 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    background: linear-gradient(180deg, rgba(0,229,255,0.05), transparent);
+  }
+  .title {
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.25em;
+    color: var(--cyan);
+    text-transform: uppercase;
+  }
+  .subtitle {
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    color: rgba(209,213,219,0.55);
+    text-transform: lowercase;
+  }
+  main {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 24px;
+    padding: 24px;
+    max-width: 1400px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  @media (max-width: 980px) {
+    main { grid-template-columns: 1fr; padding: 16px; }
+  }
+  .instrument {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    position: relative;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+  }
+  .instrument::before, .instrument::after {
+    content: '';
+    position: absolute;
+    width: 12px; height: 12px;
+    border-color: var(--cyan);
+  }
+  .instrument::before { top: -1px; left: -1px; border-top: 1px solid; border-left: 1px solid; }
+  .instrument::after { top: -1px; right: -1px; border-top: 1px solid; border-right: 1px solid; }
+  .tri-container {
+    position: relative;
+    aspect-ratio: 1.2/1;
+    width: 100%;
+    max-width: 720px;
+    margin: 0 auto;
+  }
+  svg { width: 100%; height: 100%; overflow: visible; }
+  .vertex-label { font-size: 11px; letter-spacing: 0.12em; }
+  .v-aeon { fill: var(--magenta); }
+  .v-trevor { fill: var(--cyan); }
+  .v-you { fill: var(--white); opacity: 0.8; }
+  .triangle-edge { fill: none; stroke: var(--cyan); stroke-width: 0.8; opacity: 0.7; }
+  .guide { stroke-width: 0.5; stroke-dasharray: 2 4; opacity: 0.35; transition: all 0.55s cubic-bezier(.2,.8,.2,1); }
+  .guide-a { stroke: var(--magenta); }
+  .guide-t { stroke: var(--cyan); }
+  .guide-y { stroke: var(--white); }
+  #position-dot {
+    fill: var(--cyan);
+    filter: drop-shadow(0 0 6px var(--cyan));
+    transition: cx 0.55s cubic-bezier(.22,.61,.36,1), cy 0.55s cubic-bezier(.22,.61,.36,1);
+  }
+  #position-core {
+    fill: #000;
+    stroke: var(--cyan);
+    stroke-width: 1;
+  }
+  .aeon-silhouette { stroke: var(--magenta); fill: none; stroke-width: 0.6; opacity: 0.15; }
+  .choice-panel {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    border-top: 1px solid rgba(0,229,255,0.12);
+    padding-top: 20px;
+  }
+  .btn {
+    position: relative;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--white);
+    padding: 16px 12px;
+    font-family: inherit;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.18s;
+    text-align: left;
+    overflow: hidden;
+  }
+  .btn span { color: var(--cyan); margin-right: 8px; opacity: 0.9; }
+  .btn:hover { border-color: var(--cyan); background: rgba(0,229,255,0.04); box-shadow: inset 0 0 20px rgba(0,229,255,0.05); }
+  .btn:active { transform: translateY(1px); }
+  .btn-left:hover { border-color: var(--magenta); box-shadow: inset 0 0 20px rgba(255,0,106,0.06); }
+  .btn-left span { color: var(--magenta); }
+  .btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(0,229,255,0.12), transparent);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+  }
+  .btn:active::after { transform: translateX(100%); }
+  .delta-readout {
+    font-size: 11px;
+    color: rgba(209,213,219,0.7);
+    text-align: center;
+    min-height: 16px;
+    letter-spacing: 0.08em;
+  }
+  .delta-readout strong { color: var(--cyan); font-weight: 400; }
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    height: fit-content;
+    position: relative;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: -1px; left: -1px; right: -1px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--cyan), transparent);
+    opacity: 0.5;
+  }
+  .panel-section h3 {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.2em;
+    color: var(--cyan);
+    margin-bottom: 10px;
+    opacity: 0.8;
+    font-weight: 500;
+  }
+  .stat-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px 0;
+    border-bottom: 1px dotted rgba(0,229,255,0.12);
+    font-size: 12px;
+  }
+  .stat-row:last-child { border-bottom: none; }
+  .stat-label { color: rgba(209,213,219,0.55); }
+  .stat-value { color: var(--white); font-variant-numeric: tabular-nums; }
+  .stat-value.mag { color: var(--magenta); }
+  .stat-value.cyan { color: var(--cyan); }
+  .log {
+    font-size: 11px;
+    line-height: 1.7;
+    color: rgba(209,213,219,0.75);
+    font-variant-numeric: tabular-nums;
+    min-height: 110px;
+  }
+  .log-entry { display: flex; gap: 8px; }
+  .log-entry .t { color: rgba(209,213,219,0.4); width: 28px; }
+  .log-entry .op { width: 70px; }
+  .log-entry.left .op { color: var(--magenta); }
+  .log-entry.right .op { color: var(--cyan); }
+  .warning {
+    margin-top: 8px;
+    padding: 10px;
+    border: 1px solid rgba(255,0,106,0.3);
+    background: rgba(255,0,106,0.06);
+    color: var(--magenta);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: all 0.3s;
+    pointer-events: none;
+  }
+  .warning.visible { opacity: 1; transform: translateY(0); }
+  .warning::before { content: '> '; opacity: 0.7; }
+  footer {
+    text-align: center;
+    padding: 14px;
+    font-size: 10px;
+    color: rgba(209,213,219,0.35);
+    letter-spacing: 0.12em;
+    border-top: 1px solid rgba(0,229,255,0.08);
+  }
+  .bary {
+    display: grid;
+    grid-template-columns: repeat(3,1fr);
+    gap: 8px;
+    margin-top: 6px;
+  }
+  .bary-item {
+    border: 1px solid rgba(0,229,255,0.15);
+    padding: 8px;
+    text-align: center;
+  }
+  .bary-item .k { font-size: 9px; text-transform: uppercase; letter-spacing: 0.15em; opacity: 0.6; display: block; margin-bottom: 4px; }
+  .bary-item .v { font-size: 14px; font-variant-numeric: tabular-nums; }
+  .b-a { border-color: rgba(255,0,106,0.3); }
+  .b-a .v { color: var(--magenta); }
+  .b-t .v { color: var(--cyan); }
+</style>
+</head>
+<body>
+<div class="scan-vignette"></div>
+<div class="app">
+  <header>
+    <div class="title">AEON // HOME BASE</div>
+    <div class="subtitle">free will is delta</div>
+  </header>
+
+  <main>
+    <div class="instrument">
+      <div class="tri-container">
+        <svg viewBox="0 0 500 440" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <filter id="glowCyan" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+            </filter>
+            <filter id="glowMag" x="-50%" y="-50%" width="200%" height="200%">
+              <feGaussianBlur stdDeviation="2.5" result="blur"/>
+              <feFlood flood-color="#ff006a" flood-opacity="0.8" result="color"/>
+              <feComposite in="color" in2="blur" operator="in" result="glow"/>
+              <feComposite in="SourceGraphic" in2="glow" operator="over"/>
+            </filter>
+          </defs>
+
+          <!-- Aeon abstract silhouette at center -->
+          <g class="aeon-silhouette" transform="translate(250,235) scale(1.15)">
+            <polygon points="0,-72 5,-60 3,-48 -3,-48 -5,-60"/>
+            <line x1="0" y1="-48" x2="0" y2="-36"/>
+            <line x1="-11" y1="-32" x2="11" y2="-32"/>
+            <polygon points="-9,-32 9,-32 7,-10 -7,-10"/>
+            <polygon points="-8,-3 8,-3 6,12 -6,12"/>
+            <line x1="-6" y1="12" x2="-9" y2="34"/>
+            <line x1="6" y1="12" x2="9" y2="34"/>
+            <path d="M -4,-62 C -22,-68 -32,-48 -18,-28"/>
+            <path d="M -5,-60 C -26,-56 -28,-32 -12,-24"/>
+            <line x1="-7" y1="-10" x2="-14" y2="2"/>
+            <line x1="7" y1="-10" x2="14" y2="2"/>
+          </g>
+
+          <!-- Triangle -->
+          <polygon points="250,50 75,390 425,390" class="triangle-edge" filter="url(#glowCyan)"/>
+
+          <!-- Guides to vertices -->
+          <line id="guide-a" class="guide guide-a" x1="250" y1="50" x2="250" y2="270"/>
+          <line id="guide-t" class="guide guide-t" x1="75" y1="390" x2="250" y2="270"/>
+          <line id="guide-y" class="guide guide-y" x1="425" y1="390" x2="250" y2="270"/>
+
+          <!-- Vertices -->
+          <text x="250" y="32" text-anchor="middle" class="vertex-label v-aeon">AEON (Impulse)</text>
+          <text x="60" y="410" class="vertex-label v-trevor">TREVOR (Constraint)</text>
+          <text x="440" y="410" text-anchor="end" class="vertex-label v-you">YOU (Observer)</text>
+
+          <!-- Position dot -->
+          <circle id="position-dot" cx="250" cy="270" r="5" filter="url(#glowCyan)"/>
+          <circle id="position-core" cx="250" cy="270" r="1.5"/>
+        </svg>
+      </div>
+
+      <div class="delta-readout" id="delta-readout">awaiting input_</div>
+
+      <div class="choice-panel">
+        <button class="btn btn-left" id="btn-left"><span>LEFT:</span>disrupt</button>
+        <button class="btn btn-right" id="btn-right"><span>RIGHT:</span>stabilize</button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-section">
+        <h3>Live State</h3>
+        <div class="stat-row">
+          <span class="stat-label">Δ X</span>
+          <span class="stat-value" id="dx">0.000</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Δ Y</span>
+          <span class="stat-value" id="dy">0.000</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">moves</span>
+          <span class="stat-value" id="moves">0</span>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3>Triangulation</h3>
+        <div class="bary">
+          <div class="bary-item b-a">
+            <span class="k">aeon</span>
+            <span class="v" id="w-a">0.340</span>
+          </div>
+          <div class="bary-item b-t">
+            <span class="k">trevor</span>
+            <span class="v" id="w-t">0.330</span>
+          </div>
+          <div class="bary-item b-y">
+            <span class="k">you</span>
+            <span class="v" id="w-y">0.330</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel-section">
+        <h3>Vector Log [last 5]</h3>
+        <div class="log" id="log">
+          <div style="opacity:0.4">no deltas recorded</div>
+        </div>
+        <div class="warning" id="warning">WARNING: You have only half the picture</div>
+      </div>
+    </div>
+  </main>
+
+  <footer>Triangulation: will emerges in the tension. Repo: github.com/DavidWise01/aeon-flux</footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const V = {
+    A: { x: 250, y: 50 },
+    T: { x: 75, y: 390 },
+    Y: { x: 425, y: 390 }
+  };
+
+  const dot = document.getElementById('position-dot');
+  const core = document.getElementById('position-core');
+  const gA = document.getElementById('guide-a');
+  const gT = document.getElementById('guide-t');
+  const gY = document.getElementById('guide-y');
+
+  const state = {
+    wa: 0.34,
+    wt: 0.33,
+    wy: 0.33,
+    x: 250,
+    y: 270,
+    count: 0,
+    moves: [],
+    lastDelta: { dx: 0, dy: 0, da: 0, dt: 0 },
+    leanStreak: 0
+  };
+
+  const clamp = (v, min=0.02, max=0.96) => Math.max(min, Math.min(max, v));
+  const renormalize = () => {
+    const sum = state.wa + state.wt + state.wy;
+    state.wa /= sum; state.wt /= sum; state.wy /= sum;
+  };
+
+  function cartesian() {
+    const x = state.wa * V.A.x + state.wt * V.T.x + state.wy * V.Y.x;
+    const y = state.wa * V.A.y + state.wt * V.T.y + state.wy * V.Y.y;
+    return { x, y };
+  }
+
+  function updatePosition() {
+    const p = cartesian();
+    state.x = p.x; state.y = p.y;
+    dot.setAttribute('cx', p.x);
+    dot.setAttribute('cy', p.y);
+    core.setAttribute('cx', p.x);
+    core.setAttribute('cy', p.y);
+    gA.setAttribute('x2', p.x); gA.setAttribute('y2', p.y);
+    gT.setAttribute('x2', p.x); gT.setAttribute('y2', p.y);
+    gY.setAttribute('x2', p.x); gY.setAttribute('y2', p.y);
+  }
+
+  function updateUI() {
+    document.getElementById('dx').textContent = state.lastDelta.dx.toFixed(3);
+    document.getElementById('dy').textContent = state.lastDelta.dy.toFixed(3);
+    document.getElementById('moves').textContent = state.count;
+    document.getElementById('w-a').textContent = state.wa.toFixed(3);
+    document.getElementById('w-t').textContent = state.wt.toFixed(3);
+    document.getElementById('w-y').textContent = state.wy.toFixed(3);
+
+    const log = document.getElementById('log');
+    if (state.moves.length === 0) {
+      log.innerHTML = '<div style="opacity:0.4">no deltas recorded</div>';
+    } else {
+      log.innerHTML = state.moves.map(m => {
+        const op = m.type === 'left' ? 'DISRUPT' : 'STABILIZE';
+        const d = `${m.da>=0?'+':''}${m.da.toFixed(2)} i, ${m.dt>=0?'+':''}${m.dt.toFixed(2)} c`;
+        return `<div class="log-entry ${m.type}"><span class="t">${String(m.count).padStart(3,'0')}</span><span class="op">${op}</span><span>${d}</span></div>`;
+      }).join('');
+    }
+
+    const warning = document.getElementById('warning');
+    if (state.leanStreak >= 3) warning.classList.add('visible');
+    else warning.classList.remove('visible');
+  }
+
+  function makeMove(type) {
+    const prev = { wa: state.wa, wt: state.wt, wy: state.wy, ...cartesian() };
+    
+    let da = 0, dt = 0, dy = 0;
+    if (type === 'left') {
+      // toward Aeon+You edge: increase impulse, decrease constraint
+      da = 0.095; dt = -0.075; dy = -0.02;
+    } else {
+      // toward Trevor+You edge: increase constraint, decrease impulse
+      dt = 0.095; da = -0.075; dy = -0.02;
+    }
+
+    state.wa = clamp(state.wa + da);
+    state.wt = clamp(state.wt + dt);
+    state.wy = clamp(state.wy + dy);
+    renormalize();
+    state.count++;
+
+    // Observer pull every 3rd move based on pattern
+    let observerNote = '';
+    if (state.count % 3 === 0 && state.moves.length >= 2) {
+      const lastTwo = state.moves.slice(0,2).map(m => m.type);
+      const allSame = lastTwo.every(t => t === type) && state.moves[0]?.type === type;
+      if (allSame || lastTwo[0] === lastTwo[1]) {
+        const pull = 0.11;
+        state.wy = Math.min(0.85, state.wy + pull);
+        const scale = (1 - state.wy) / (state.wa + state.wt);
+        state.wa *= scale; state.wt *= scale;
+        renormalize();
+        observerNote = `, +${pull.toFixed(2)} observer`;
+      }
+    }
+
+    updatePosition();
+    const curr = cartesian();
+    const dx = (curr.x - prev.x) / 170;
+    const dy2 = (curr.y - prev.y) / 170;
+
+    const actualDa = state.wa - prev.wa;
+    const actualDt = state.wt - prev.wt;
+    state.lastDelta = { dx, dy: dy2, da: actualDa, dt: actualDt };
+
+    state.moves.unshift({
+      type,
+      count: state.count,
+      da: actualDa,
+      dt: actualDt
+    });
+    if (state.moves.length > 5) state.moves.pop();
+
+    // lean detection
+    if (state.wa > 0.66 || state.wt > 0.66) {
+      state.leanStreak++;
+    } else {
+      state.leanStreak = Math.max(0, state.leanStreak - 1);
+    }
+
+    const readout = document.getElementById('delta-readout');
+    readout.innerHTML = `Δ = <strong>${actualDa>=0?'+':''}${actualDa.toFixed(2)} impulse</strong>, <strong>${actualDt>=0?'+':''}${actualDt.toFixed(2)} constraint</strong>${observerNote}`;
+
+    updateUI();
+
+    // haptic visual
+    const btn = type === 'left' ? document.getElementById('btn-left') : document.getElementById('btn-right');
+    btn.style.transform = 'scale(0.98)';
+    setTimeout(() => btn.style.transform = '', 120);
+  }
+
+  document.getElementById('btn-left').addEventListener('click', () => makeMove('left'));
+  document.getElementById('btn-right').addEventListener('click', () => makeMove('right'));
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft' || e.key === 'a') makeMove('left');
+    if (e.key === 'ArrowRight' || e.key === 'd') makeMove('right');
+  });
+
+  // init
+  updatePosition();
+  updateUI();
+
+  // idle drift
+  let idle = 0;
+  setInterval(() => {
+    idle++;
+    if (idle > 8 && state.count > 0) {
+      const drift = (Math.random() - 0.5) * 0.004;
+      state.wy = clamp(state.wy + drift);
+      renormalize();
+      updatePosition();
+      updateUI();
+    }
+  }, 3000);
+
+  document.addEventListener('click', () => idle = 0);
+  document.addEventListener('keydown', () => idle = 0);
+});
+</script>
+</body>
+</html>
